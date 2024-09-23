@@ -1,6 +1,10 @@
 <h1 align="center">DWES</h1>
+
+<p align="center">
+ <img src="https://github.com/user-attachments/assets/a5108050-b181-4b98-bd1a-8806d69a9e39" alt="logo" />
+</p>
+
 Proyecto "xxxxx" (aquí va un parrafo que describe lo que es el proyecto)
-![logo](https://github.com/user-attachments/assets/a5108050-b181-4b98-bd1a-8806d69a9e39)
 
 <h2>Comenzando</h2>
 Estas instrucciones te permitirán obtener una copia del proyecto en funcionamiento en tu máquina local
@@ -17,7 +21,6 @@ Que cosas necesitas para instalar el software y como instalarlas.
 <a href="https://discord.com/"><ul>Twitter</ul>
 
 <h2>Autores</h2>
-<a href="https://github.com/Damiancb97">Damián Costa Blanco 2ºDAW</a>
 
 [<img src="https://avatars.githubusercontent.com/u/165881637?v=4" width=115><br><sub>Damián Costa</sub>](https://github.com/Damiancb97)
 
