@@ -19,6 +19,8 @@ Que cosas necesitas para instalar el software y como instalarlas.
 <h2>Autores</h2>
 <a href="https://github.com/Damiancb97">Damián Costa Blanco 2ºDAW</a>
 
+[<img src="https://avatars.githubusercontent.com/u/165881637?v=4" width=115><br><sub>Damián Costa</sub>](https://github.com/Damiancb97)
+
 <h3>Insignias</h3>
 
 ![Static Badge](https://img.shields.io/badge/discord-Proyecto-brightgreen?logo=discord)
