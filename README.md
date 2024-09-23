@@ -12,16 +12,19 @@
 
 Discord es una aplicación que ofrece comunicación entre personas tanto a través de mensajes, imagenes, llamadas de voz o videollamadas en vivo.
 
-<h2>Comenzando 🚀</h2>
+<h2>Estado Actual </h2>
+Proyecto en mantenimiento por posibles bugs, corrección de errores e implementación de nuevas funcionalidades.
+
+<h2>Acceso al proyecto 🚀</h2>
 Estas instrucciones te permitirán obtener una copia del proyecto en funcionamiento en tu máquina local para propósitos de desarrollo y pruebas.
 
 <h2>Pre-requisitos 📋</h2>
 Antes de comenzar, asegúrate de tener instalado lo siguiente:
+
 <ul>
  <li><a href="https://git-scm.com/">Git</a></li>
  <li><a href="https://nodejs.org/en">Node.js</a></li>
 </ul>
-
 
 <h2>Instalación</h2>
 
@@ -30,7 +33,7 @@ Antes de comenzar, asegúrate de tener instalado lo siguiente:
 <a href="https://discord.com/"><ul>Github</ul>
 <a href="https://discord.com/"><ul>Twitter</ul>
 
-<h2>Autores</h2>
+<h2>Autores 🏆</h2>
 
 [<img src="https://avatars.githubusercontent.com/u/165881637?v=4" width=115><br><sub>Damián Costa</sub>](https://github.com/Damiancb97)
 
