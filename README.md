@@ -4,9 +4,9 @@
  <img src="https://github.com/user-attachments/assets/a5108050-b181-4b98-bd1a-8806d69a9e39" alt="logo" />
 </p>
 
-Proyecto Discord, una aplicación que ofrece comunicación entre personas tanto a través de mensajes, imagenes, llamadas de voz o videollamdas en vivo.
+Discord es una aplicación que ofrece comunicación entre personas tanto a través de mensajes, imagenes, llamadas de voz o videollamadas en vivo.
 
-<h2>Comenzando</h2>
+<h2>Comenzando 🚀</h2>
 Estas instrucciones te permitirán obtener una copia del proyecto en funcionamiento en tu máquina local
 para propósitos de desarrollo y pruebas.
 
