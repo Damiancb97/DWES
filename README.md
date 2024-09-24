@@ -1,14 +1,44 @@
-<h1 align="center">DWES</h1>
+<h1 align="center"><em>DWES</em></h1>
 
 <p align="center">
  <img src="https://github.com/user-attachments/assets/a5108050-b181-4b98-bd1a-8806d69a9e39" alt="logo" />
 </p>
+
+Insignias
 
 ![Static Badge](https://img.shields.io/badge/discord-Proyecto-brightgreen?logo=discord)
 ![Static Badge](https://img.shields.io/badge/%3Clicense%3E-%3CMIT%3E-red)
 ![Static Badge](https://img.shields.io/badge/%3CMaven%20central%3E-v4.0.1-blue)
 ![Static Badge](https://img.shields.io/badge/%3Crelease%20date%3E-august-yellow)
 [![Documentación completa](https://img.shields.io/badge/Documentación-Completa-brightgreen)](https://tu-enlace.com)
+
+##Índice
+
+*[Título e imagen de portada](#Título-e-imagen-de-portada)
+
+*[insignias](insignias)
+
+*[Índice](#índice)
+
+*[Descripción del proyecto](#descripción-del-proyecto)
+
+*[Estado del proyecto](#Estado-del-proyecto)
+
+*[Características de la aplicación y demostración](#Características-de-la-aplicación-y-demostración)
+
+*[Acceso al proyecto](#acceso-proyecto)
+
+*[Tecnologías utilizadas](#tecnologías-utilizadas)
+
+*[Personas Contribuyentes](#personas-contribuyentes)
+
+*[Personas-Desarrolladores del Proyecto](#personas-desarrolladores)
+
+* [Licencia](#licencia)
+
+*[Conclusión](#conclusión)
+
+*[Autores](#autores)
 
 Discord es una aplicación que ofrece comunicación entre personas tanto a través de mensajes, imagenes, llamadas de voz o videollamadas en vivo.
 
@@ -33,7 +63,7 @@ Antes de comenzar, asegúrate de tener instalado lo siguiente:
 <a href="https://discord.com/"><ul>Github</ul>
 <a href="https://discord.com/"><ul>Twitter</ul>
 
-<h2>Autores 🏆</h2>
+<h2>##Autores 🏆</h2>
 
 [<img src="https://avatars.githubusercontent.com/u/165881637?v=4" width=115><br><sub>Damián Costa</sub>](https://github.com/Damiancb97)
 
