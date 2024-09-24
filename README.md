@@ -12,38 +12,58 @@ Insignias
 ![Static Badge](https://img.shields.io/badge/%3Crelease%20date%3E-august-yellow)
 [![Documentación completa](https://img.shields.io/badge/Documentación-Completa-brightgreen)](https://tu-enlace.com)
 
-##Índice
+Índice
 
-*[Título e imagen de portada](#Título-e-imagen-de-portada)
+ [Título e imagen de portada](#Título-e-imagen-de-portada)
 
-*[insignias](insignias)
+[insignias](insignias)
 
-*[Índice](#índice)
+[Índice](Indice)
 
-*[Descripción del proyecto](#descripción-del-proyecto)
+[Descripción del proyecto](Descripción)
 
-*[Estado del proyecto](#Estado-del-proyecto)
+[Estado del proyecto](Estado-Actual)
 
-*[Características de la aplicación y demostración](#Características-de-la-aplicación-y-demostración)
+[Demostración del funcionamiento](##-:movie_camera:-Demostración-de-funciones-y-aplicaciones
+)
 
-*[Acceso al proyecto](#acceso-proyecto)
+[Acceso al proyecto](Acceso-al-proyecto-🚀)
 
-*[Tecnologías utilizadas](#tecnologías-utilizadas)
+[Pre-requesitos](Pre-requisitos-📋)
 
-*[Personas Contribuyentes](#personas-contribuyentes)
+[Autores](Autores-🏆)
 
-*[Personas-Desarrolladores del Proyecto](#personas-desarrolladores)
-
-* [Licencia](#licencia)
-
-*[Conclusión](#conclusión)
-
-*[Autores](#autores)
-
+<h2>Descripción</h2>
 Discord es una aplicación que ofrece comunicación entre personas tanto a través de mensajes, imagenes, llamadas de voz o videollamadas en vivo.
 
-<h2>Estado Actual </h2>
+<h2>Estado Actual</h2>
 Proyecto en mantenimiento por posibles bugs, corrección de errores e implementación de nuevas funcionalidades.
+
+
+## :movie_camera: Demostración de funciones y aplicaciones
+
+A continuación, te mostramos ejemplos de cómo se utilizan las funcionalidades principales de la aplicación.
+
+### 1. Registrarse
+
+Los usuarios pueden registrarse proporcionando su correo electrónico o usando cuentas de Google o Facebook. A continuación, una captura del formulario de registro:
+
+![Formulario de registro](https://ruta.al.ejemplo/registro.png)
+
+### 2. Opciones de búsqueda de servidores y amigos
+
+La barra de búsqueda permite encontrar servidores o amigos. Los usuarios pueden unirse a servidores a través de enlaces de invitación o buscar amigos por nombre de usuario:
+
+![Proceso de suscripción a Nitro](https://ruta.al.ejemplo/nitro.png)
+
+### 3. Suscribirse a Discord Nitro
+
+Discord Nitro ofrece a los usuarios características adicionales, como emojis animados, mejor calidad de video y aumentos de servidores. A continuación, una captura del proceso de suscripción a Nitro:
+
+![Proceso de suscripción a Nitro](https://ruta.al.ejemplo/nitro.png)
+
+
+
 
 <h2>Acceso al proyecto 🚀</h2>
 Estas instrucciones te permitirán obtener una copia del proyecto en funcionamiento en tu máquina local para propósitos de desarrollo y pruebas.
@@ -63,10 +83,11 @@ Antes de comenzar, asegúrate de tener instalado lo siguiente:
 <a href="https://discord.com/"><ul>Github</ul>
 <a href="https://discord.com/"><ul>Twitter</ul>
 
-<h2>##Autores 🏆</h2>
+<h2>Autores 🏆</h2>
 
 [<img src="https://avatars.githubusercontent.com/u/165881637?v=4" width=115><br><sub>Damián Costa</sub>](https://github.com/Damiancb97)
 
+<h2>Licencia🖊️📋</h2>
 
 
 
