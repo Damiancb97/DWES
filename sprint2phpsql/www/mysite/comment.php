@@ -16,7 +16,7 @@ VALUES ('".$comentario."',".$juego_id.",NULL)";
             echo mysqli_insert_id($db);
             echo " añadido</p>";
 
-            echo "<a href='/detail.php?juego_id=".$juego_id."'>Volver</a>";
+            echo "<a href='/detail.php?id=".$juego_id."'>Volver</a>";
             mysqli_close($db);
         ?>
     </body>

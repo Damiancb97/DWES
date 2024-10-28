@@ -61,18 +61,17 @@
         // Mostrar más detalles (género, plataforma, etc.)
         echo '<p><strong>Género:</strong> ' . htmlspecialchars($row['genero']) . '</p>';
         echo '<p><strong>Plataforma:</strong> ' . htmlspecialchars($row['plataforma']) . '</p>';
-        echo '<p><strong>Año de lanzamiento:</strong> ' . htmlspecialchars($row['anio']) . '</p>';
+        echo '<p><strong>Año de lanzamiento:</strong> ' . htmlspecialchars($row['fecha_lanzamiento']) . '</p>';
         
         // Mostrar la imagen del juego
-        echo '<img src="' . htmlspecialchars($row['imagen']) . '" alt="Imagen de ' . htmlspecialchars($row['nombre']) . '">';
-        
+        echo '<img src="'. htmlspecialchars($row['url_imagen']) . '">';        
         // Enlace a detail.php con el ID del juego
         echo '<p><a href="detail.php?id=' . htmlspecialchars($row['id']) . '">Ver más detalles</a></p>';
         echo '</div>';
     }
 
 	// Cerrar la conexión
-	mysqli_close($db);
+	mysqli_close($db); 
 	?>
 </body>
 </html>
