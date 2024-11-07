@@ -16,6 +16,10 @@
             text-align: center;
             color: #333;
         }
+        h1 a{
+            float:right;
+            font-size: 15px;
+        }
         .container {
             display: flex;
             flex-wrap: wrap;
@@ -47,7 +51,7 @@
     </style>
 </head>
 <body>
-<h1>Conexión establecida</h1>
+<h1>Conexión establecida <a href="/logout.php">Logout</a></h1>
 	<?php
 	// Lanzar una query
 	$query = 'SELECT * FROM tJuegos';
