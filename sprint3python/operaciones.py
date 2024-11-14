@@ -13,3 +13,6 @@ def division(a, b):
     if b == 0:
         return "Error: División por cero no permitida."
     return a / b
+
+if __name__ == "__main__":
+    print(suma (2,4))
