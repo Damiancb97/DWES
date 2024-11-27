@@ -1,5 +1,8 @@
 <?php
-	$db = mysqli_connect('localhost', 'root', '1234', 'mysitedb') or die('Fail');
+$host = '172.16.0.2'; // Dirección del servidor Django
+$username = 'root';
+$password = '1234';
+$dbname = 'mysitedb';
 ?>
 <html>
 <head>
@@ -16,8 +19,8 @@
             text-align: center;
             color: #333;
         }
-        h1 a{
-            float:right;
+        h1 a {
+            float: right;
             font-size: 15px;
         }
         .container {
@@ -52,30 +55,40 @@
 </head>
 <body>
 <h1>Conexión establecida <a href="/logout.php">Logout</a></h1>
-	<?php
-	// Lanzar una query
-	$query = 'SELECT * FROM tJuegos';
-	$result = mysqli_query($db, $query) or die('Query error');
-	// Recorrer el resultado
-	while ($row = mysqli_fetch_array($result)){
-        echo '<div class="item">';
-        // Mostrar el nombre del juego
-        echo '<h2>' . htmlspecialchars($row['nombre']) . '</h2>';
-        
-        // Mostrar más detalles (género, plataforma, etc.)
-        echo '<p><strong>Género:</strong> ' . htmlspecialchars($row['genero']) . '</p>';
-        echo '<p><strong>Plataforma:</strong> ' . htmlspecialchars($row['plataforma']) . '</p>';
-        echo '<p><strong>Año de lanzamiento:</strong> ' . htmlspecialchars($row['fecha_lanzamiento']) . '</p>';
-        
-        // Mostrar la imagen del juego
-        echo '<img src="'. htmlspecialchars($row['url_imagen']) . '">';        
-        // Enlace a detail.php con el ID del juego
-        echo '<p><a href="detail.php?id=' . htmlspecialchars($row['id']) . '">Ver más detalles</a></p>';
-        echo '</div>';
-    }
+<div class="container">
+<?php
+// Conexión a la base de datos
+$conn = new mysqli($host, $username, $password, $dbname);
 
-	// Cerrar la conexión
-	mysqli_close($db); 
-	?>
+// Verifica si hay errores en la conexión
+if ($conn->connect_error) {
+    die("Error al conectar a la base de datos: " . $conn->connect_error);
+}
+
+// Ejecuta la consulta
+$query = 'SELECT * FROM tJuegos';
+$result = $conn->query($query);
+
+// Verifica si la consulta es válida
+if (!$result) {
+    die("Error en la consulta: " . $conn->error);
+}
+
+// Recorre el resultado
+while ($row = $result->fetch_assoc()) {
+    echo '<div class="item">';
+    echo '<h2>' . htmlspecialchars($row['nombre']) . '</h2>';
+    echo '<p><strong>Género:</strong> ' . htmlspecialchars($row['genero']) . '</p>';
+    echo '<p><strong>Plataforma:</strong> ' . htmlspecialchars($row['plataforma']) . '</p>';
+    echo '<p><strong>Año de lanzamiento:</strong> ' . htmlspecialchars($row['fecha_lanzamiento']) . '</p>';
+    echo '<img src="' . htmlspecialchars($row['url_imagen']) . '">';
+    echo '<p><a href="detail.php?id=' . htmlspecialchars($row['id']) . '">Ver más detalles</a></p>';
+    echo '</div>';
+}
+
+// Cierra la conexión
+$conn->close();
+?>
+</div>
 </body>
 </html>

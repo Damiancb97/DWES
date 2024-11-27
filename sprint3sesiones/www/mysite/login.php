@@ -1,28 +1,47 @@
 <?php
-    $db = mysqli_connect('localhost', 'root', '1234', 'mysitedb') or die('Fail');
-    
-    $email_posted = $_POST['f_email'];
-    $password_posted = $_POST['f_password'];
+$host = '172.16.0.2'; // Dirección del servidor Django
+$username = 'root';
+$password = '1234';
+$dbname = 'mysitedb';
 
-    // Consulta preparada para evitar inyección SQL
-    $query = "SELECT id, contraseña FROM tUsuarios WHERE email = ?";
-    $stmt = mysqli_prepare($db, $query);
-    mysqli_stmt_bind_param($stmt, 's', $email_posted);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+// Conexión a la base de datos
+$conn = new mysqli($host, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("Error al conectar a la base de datos: " . $conn->connect_error);
+}
 
-    $query = "SELECT id, contraseña FROM tUsuarios WHERE email = '".$email_posted."'";
-    $result = mysqli_query($db, $query) or die('Query error'); 
-if (mysqli_num_rows($result) > 0) {
-    $only_row = mysqli_fetch_array($result);
+// Validar si los datos del formulario están presentes
+if (!isset($_POST['f_email']) || !isset($_POST['f_password'])) {
+    die('Error: Datos no válidos.');
+}
+
+$email_posted = trim($_POST['f_email']);
+$password_posted = trim($_POST['f_password']);
+
+// Consulta preparada para buscar al usuario por email
+$query = "SELECT id, contraseña FROM tUsuarios WHERE email = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param('s', $email_posted);
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Verificar si el usuario existe
+if ($result->num_rows > 0) {
+    $only_row = $result->fetch_assoc();
+    // Verificar la contraseña
     if (password_verify($password_posted, $only_row['contraseña'])) {
         session_start();
-        $_SESSION['user_id'] = $only_row[0];
+        $_SESSION['user_id'] = $only_row['id'];
         header('Location: main.php');
+        exit;
     } else {
-        echo '<p>Contraseña incorrecta</p>';
+        echo '<p>Credenciales incorrectas</p>';
     }
-    } else {
-        echo '<p>Usuario no encontrado con ese email</p>';
-    }
+} else {
+    echo '<p>Credenciales incorrectas</p>';
+}
+
+// Cerrar la conexión
+$stmt->close();
+$conn->close();
 ?>
