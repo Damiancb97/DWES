@@ -7,7 +7,7 @@ class User(models.Model):
     ]
 
     nombre = models.CharField(max_length=100)
-    correo_electronico = models.EmailField(unique=True) # EmailField correos duplicados
+    correo_electronico = models.EmailField(unique=True) # EmailField evita correos duplicados
     contrasena = models.CharField(max_length=128)
     biografia = models.TextField(blank=True, null=True)  # Campo opcional
     rol = models.CharField(max_length=20, choices=ROL_CHOICES)
