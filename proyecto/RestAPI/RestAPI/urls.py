@@ -16,7 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from EventManager import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('eventos/', views.listar_eventos, name='listar_eventos'),
+    path('eventos/crear/', views.crear_evento, name='crear_evento'),
+    path('eventos/<int:evento_id>/actualizar/', views.actualizar_evento, name='actualizar_evento'),
+    path('eventos/<int:evento_id>/eliminar/', views.eliminar_evento, name='eliminar_evento'),
 ]
