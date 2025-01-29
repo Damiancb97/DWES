@@ -21,7 +21,6 @@ class Event(models.Model):
     capacidad_maxima = models.IntegerField()
     imagen_url = models.URLField(blank=True, null=True)  # Campo opcional
     organizador = models.ForeignKey(User, on_delete=models.CASCADE, related_name='eventos_organizados')
-    #created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.titulo

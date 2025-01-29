@@ -5,7 +5,7 @@ from .models import User, Event, Reserva, Comentario
 
 # Personalización de la tabla de usuarios en el administrador
 @admin.register(User)
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(admin.ModelAdmin):
     # Campos visibles en la lista
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'rol')
     # Filtros laterales

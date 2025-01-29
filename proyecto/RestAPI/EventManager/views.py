@@ -1,20 +1,15 @@
-from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-from .models import Event
+from .models import Event, User
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_datetime
 from django.core.paginator import Paginator
 import json
 
 
-# Decorador csrf_exempt para desactivar la verificación CSRF para estas vistas
-# Solo para propósitos de prueba, no es recomendable en producción sin un mecanismo de protección adecuado.
 
 # Obtener eventos con filtros, ordenados y paginados
 @csrf_exempt
-#@require_http_methods(["GET"])
 def listar_eventos(request):
     # Obtener parámetros de búsqueda, ordenación y paginación
     titulo = request.GET.get("titulo", "")  # Filtrar por título
@@ -53,8 +48,8 @@ def listar_eventos(request):
                 "imagen_url": e.imagen_url,
                 "organizador": {
                     "id": e.organizador.id,
-                    "nombre": e.organizador.nombre,
-                    "correo_electronico": e.organizador.correo_electronico
+                    "nombre": e.organizador.username,
+                    "correo_electronico": e.organizador.email
                 }
             }
             for e in eventos_pagina
@@ -65,31 +60,52 @@ def listar_eventos(request):
 
 # Crear un nuevo evento (solo organizadores)
 @csrf_exempt
-#@require_http_methods(["POST"])
-#@login_required
 def crear_evento(request):
-    if not request.user.rol == 'organizador':  # Verificar que el usuario sea organizador (por ejemplo, admin)
-        return JsonResponse({'error': 'Solo los organizadores pueden crear eventos.'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido. Usa POST.'}, status=405)
 
-    data = json.loads(request.body)
+    # Obtener el organizador desde la URL
+    organizador_username = request.GET.get('organizador')
+    if not organizador_username:
+        return JsonResponse({'error': 'Falta el parámetro "organizador" en la URL.'}, status=400)
 
-    # Crear un nuevo evento
-    evento = Event.objects.create(
-        titulo=data.get('titulo'),
-        descripcion=data.get('descripcion'),
-        fecha_hora=parse_datetime(data.get('fecha_hora')),
-        capacidad_maxima=data.get('capacidad_maxima'),
-        imagen_url=data.get('imagen_url', ''),
-        organizador=request.user
-    )
+    try:
+        # Buscar al usuario en la base de datos
+        organizador = User.objects.get(username=organizador_username)
+    except User.DoesNotExist:
+        return JsonResponse({'error': f'No existe un usuario con el nombre de usuario "{organizador_username}".'}, status=404)
 
-    return JsonResponse({'message': 'Evento creado con éxito', 'evento_id': evento.id}, status=201)
+    # Verificar si el usuario es organizador
+    if organizador.rol != 'organizador':
+        return JsonResponse({'error': f'El usuario "{organizador_username}" no es un organizador.'}, status=403)
+
+    try:
+        # Leer los datos enviados en el cuerpo de la solicitud
+        data = json.loads(request.body)
+
+        # Crear el evento
+        evento = Event.objects.create(
+            titulo=data.get('titulo'),
+            descripcion=data.get('descripcion'),
+            fecha_hora=parse_datetime(data.get('fecha_hora')),
+            capacidad_maxima=data.get('capacidad_maxima'),
+            imagen_url=data.get('imagen_url', ''),
+            organizador=organizador
+        )
+
+        return JsonResponse({'message': 'Evento creado con éxito', 'evento_id': evento.id}, status=201)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'El cuerpo de la solicitud debe ser un JSON válido.'}, status=400)
+    except KeyError as e:
+        return JsonResponse({'error': f'Falta el campo obligatorio: {e}.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'Error al crear el evento: {str(e)}.'}, status=500)
+
 
 
 # Actualizar un evento (solo organizadores)
 @csrf_exempt
-#@require_http_methods(["PUT", "PATCH"])
-@login_required
 def actualizar_evento(request, evento_id):
     try:
         evento = Event.objects.get(id=evento_id)
@@ -115,8 +131,6 @@ def actualizar_evento(request, evento_id):
 
 # Eliminar un evento (solo organizadores)
 @csrf_exempt
-#@require_http_methods(["DELETE"])
-@login_required
 def eliminar_evento(request, evento_id):
     try:
         evento = Event.objects.get(id=evento_id)
