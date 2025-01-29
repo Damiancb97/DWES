@@ -1,11 +1,11 @@
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.shortcuts import get_object_or_404
 from .models import Event, User
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_datetime
 from django.core.paginator import Paginator
 import json
-
 
 
 # Obtener eventos con filtros, ordenados y paginados
@@ -103,44 +103,89 @@ def crear_evento(request):
         return JsonResponse({'error': f'Error al crear el evento: {str(e)}.'}, status=500)
 
 
-
-# Actualizar un evento (solo organizadores)
+# Actualizar PUT y PATCH
 @csrf_exempt
+@require_http_methods(["PUT", "PATCH"])
 def actualizar_evento(request, evento_id):
+
+    # Obtener el organizador desde la URL
+    organizador_username = request.GET.get('organizador')
+    if not organizador_username:
+        return JsonResponse({'error': 'Falta el parámetro "organizador" en la URL.'}, status=400)
+
     try:
-        evento = Event.objects.get(id=evento_id)
+        # Buscar al usuario en la base de datos
+        organizador = User.objects.get(username=organizador_username)
+    except User.DoesNotExist:
+        return JsonResponse({'error': f'No existe un usuario con el nombre de usuario "{organizador_username}".'},
+                            status=404)
+
+    # Verificar si el usuario es organizador
+    if organizador.rol != 'organizador':
+        return JsonResponse({'error': f'El usuario "{organizador_username}" no es un organizador.'}, status=403)
+
+# Buscar el evento
+    try:
+        evento = Event.objects.get(id=evento_id, organizador=organizador)
     except Event.DoesNotExist:
-        return JsonResponse({'error': 'Evento no encontrado'}, status=404)
+        return JsonResponse({'error': 'Evento no encontrado o no tienes permisos.'}, status=404)
 
-    # Verificar que el organizador sea el mismo usuario que creó el evento
-    if evento.organizador != request.user:
-        return JsonResponse({'error': 'No tienes permisos para editar este evento.'}, status=403)
-
-    data = json.loads(request.body)
-
-    # Actualizar los campos del evento
-    evento.titulo = data.get('titulo', evento.titulo)
-    evento.descripcion = data.get('descripcion', evento.descripcion)
-    evento.fecha_hora = parse_datetime(data.get('fecha_hora', evento.fecha_hora))
-    evento.capacidad_maxima = data.get('capacidad_maxima', evento.capacidad_maxima)
-    evento.imagen_url = data.get('imagen_url', evento.imagen_url)
-    evento.save()
-
-    return JsonResponse({'message': 'Evento actualizado con éxito'})
+    try:
+        data = json.loads(request.body)
 
 
-# Eliminar un evento (solo organizadores)
+        if request.method == 'PUT':
+            evento.titulo = data.get('titulo', evento.titulo)
+            evento.descripcion = data.get('descripcion', evento.descripcion)
+            evento.fecha_hora = parse_datetime(data.get('fecha_hora')) or evento.fecha_hora
+            evento.capacidad_maxima = data.get('capacidad_maxima', evento.capacidad_maxima)
+            evento.imagen_url = data.get('imagen_url', evento.imagen_url)
+        elif request.method == 'PATCH':
+            if 'titulo' in data:
+                evento.titulo = data['titulo']
+            if 'descripcion' in data:
+                evento.descripcion = data['descripcion']
+            if 'fecha_hora' in data:
+                evento.fecha_hora = parse_datetime(data['fecha_hora']) or evento.fecha_hora
+            if 'capacidad_maxima' in data:
+                evento.capacidad_maxima = data['capacidad_maxima']
+            if 'imagen_url' in data:
+                evento.imagen_url = data['imagen_url']
+
+        evento.save()
+
+        return JsonResponse({'message': 'Evento actualizado correctamente'}, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'El cuerpo de la solicitud debe ser un JSON válido.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'Error al actualizar el evento: {str(e)}.'}, status=500)
+
+
+# Eliminar Eventos (solo organizadores)
 @csrf_exempt
+@require_http_methods(["DELETE"])
 def eliminar_evento(request, evento_id):
+    # Obtener el organizador desde la URL
+    organizador_username = request.GET.get('organizador')
+    if not organizador_username:
+        return JsonResponse({'error': 'Falta el parámetro "organizador" en la URL.'}, status=400)
+
     try:
-        evento = Event.objects.get(id=evento_id)
-    except Event.DoesNotExist:
-        return JsonResponse({'error': 'Evento no encontrado'}, status=404)
+        # Buscar al usuario en la base de datos
+        organizador = User.objects.get(username=organizador_username)
+    except User.DoesNotExist:
+        return JsonResponse({'error': f'No existe un usuario con el nombre de usuario "{organizador_username}".'},
+                            status=404)
 
-    # Verificar que el organizador sea el mismo usuario que creó el evento
-    if evento.organizador != request.user:
-        return JsonResponse({'error': 'No tienes permisos para eliminar este evento.'}, status=403)
+    # Verificar si el usuario es organizador
+    if organizador.rol != 'organizador':
+        return JsonResponse({'error': f'El usuario "{organizador_username}" no es un organizador.'}, status=403)
 
+    # Buscar el evento, asegurando que pertenezca al organizador
+    evento = get_object_or_404(Event, id=evento_id, organizador=organizador)
+
+    # Eliminar el evento
     evento.delete()
 
-    return JsonResponse({'message': 'Evento eliminado con éxito'})
+    return JsonResponse({'message': 'Evento eliminado correctamente'}, status=200)
