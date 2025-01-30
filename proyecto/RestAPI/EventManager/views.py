@@ -207,44 +207,38 @@ def listar_reservas(request, username):
 @require_http_methods(["POST"])
 def crear_reserva(request):
     try:
-        data = json.loads(request.body)
+        data = json.loads(request.body)  # Obtener datos del JSON
 
-        # Obtener datos del JSON
-        evento_id = data.get("evento_id")
-        participante_username = data.get("participante")
-        cantidad_entradas = data.get("cantidad_entradas")
+        # Extraer datos
+        usuario_username = data.get('usuario')  # Nombre de usuario
+        evento_id = data.get('evento')  # ID del evento
+        cantidad_entradas = data.get('cantidad_entradas')  # Cantidad de entradas
 
-        if not evento_id or not participante_username or not cantidad_entradas:
-            return JsonResponse({'error': 'Faltan datos obligatorios (evento_id, participante, cantidad_entradas).'}, status=400)
+        # Verificar que los datos son válidos
+        if not usuario_username or not evento_id or not cantidad_entradas:
+            return JsonResponse({"error": "Faltan datos obligatorios."}, status=400)
 
-        # Buscar evento
+        # Buscar usuario y evento
+        usuario = User.objects.get(username=usuario_username)
         evento = Event.objects.get(id=evento_id)
-
-        # Buscar participante
-        participante = User.objects.get(username=participante_username)
-
-        # Validar disponibilidad de entradas
-        total_reservado = sum(r.cantidad_entradas for r in evento.reservas.all())
-        if total_reservado + cantidad_entradas > evento.capacidad_maxima:
-            return JsonResponse({'error': 'No hay suficientes entradas disponibles.'}, status=400)
 
         # Crear la reserva
         reserva = Reserva.objects.create(
+            usuario=usuario,
             evento=evento,
-            participante=participante,
             cantidad_entradas=cantidad_entradas
         )
 
-        return JsonResponse({'message': 'Reserva creada con éxito', 'reserva_id': reserva.id}, status=201)
+        return JsonResponse({"mensaje": "Reserva creada con éxito", "reserva_id": reserva.id}, status=201)
 
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'El cuerpo de la solicitud debe ser un JSON válido.'}, status=400)
-    except Event.DoesNotExist:
-        return JsonResponse({'error': 'El evento no existe.'}, status=404)
+        return JsonResponse({"error": "El cuerpo de la solicitud debe ser un JSON válido."}, status=400)
     except User.DoesNotExist:
-        return JsonResponse({'error': 'El usuario participante no existe.'}, status=404)
+        return JsonResponse({"error": "El usuario no existe."}, status=404)
+    except Event.DoesNotExist:
+        return JsonResponse({"error": "El evento no existe."}, status=404)
     except Exception as e:
-        return JsonResponse({'error': f'Error al crear la reserva: {str(e)}'}, status=500)
+        return JsonResponse({"error": f"Error al crear la reserva: {str(e)}"}, status=500)
 
 
 # Actualizar reservas
