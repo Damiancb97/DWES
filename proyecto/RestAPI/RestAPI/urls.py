@@ -24,4 +24,12 @@ urlpatterns = [
     path('eventos/crear/', views.crear_evento, name='crear_evento'),
     path('eventos/<int:evento_id>/actualizar/', views.actualizar_evento, name='actualizar_evento'),
     path('eventos/<int:evento_id>/eliminar/', views.eliminar_evento, name='eliminar_evento'),
+    path('reservas/<str:username>/', views.listar_reservas, name='listar_reservas'),
+    path('reservas/crear/', views.crear_reserva, name='crear_reserva'), #corregir
+    path('reservas/<int:reserva_id>/actualizar/', views.actualizar_reserva, name='actualizar_reserva'),
+    path('reservas/<int:reserva_id>/cancelar/', views.cancelar_reserva, name='cancelar_reserva'),
+    path('eventos/<int:evento_id>/comentarios/', views.listar_comentarios, name='listar_comentarios'),
+    path('eventos/<int:evento_id>/comentarios/crear/', views.crear_comentario, name='crear_comentario'),
+    path('register/', views.register, name='register'),
+    path('login/', views.login, name='login'),
 ]
