@@ -21,7 +21,7 @@ def listar_eventos(request):
     pagina = int(request.GET.get("pagina", 1))  # Página actual (1 por defecto)
 
     # Filtrar y ordenar eventos
-    eventos = Event.objects.filter(titulo__icontains=titulo)
+    eventos = Event.objects.filter(titulo__icontains=titulo).select_related("organizador")
     if fecha_hora:
         eventos = eventos.filter(fecha_hora__date=fecha_hora)  # Filtrar por fecha exacta
     eventos = eventos.order_by(orden)  # Ordenar por campo especificado
@@ -198,7 +198,9 @@ def eliminar_evento(request, evento_id):
 @require_http_methods(["GET"])
 def listar_reservas(request, username):
     usuario = get_object_or_404(User, username=username)
-    reservas = Reserva.objects.filter(usuario=usuario).values("id", "evento__titulo", "cantidad_entradas", "estado")
+    reservas = Reserva.objects.filter(usuario=usuario).select_related("evento").values(
+        "id", "evento__titulo", "cantidad_entradas", "estado"
+    )
     return JsonResponse({"reservas": list(reservas)}, status=200)
 
 
@@ -207,12 +209,11 @@ def listar_reservas(request, username):
 @require_http_methods(["POST"])
 def crear_reserva(request):
     try:
-        data = json.loads(request.body)  # Obtener datos del JSON
-
+        data = json.loads(request.body)
         # Extraer datos
-        usuario_username = data.get('usuario')  # Nombre de usuario
-        evento_id = data.get('evento')  # ID del evento
-        cantidad_entradas = data.get('cantidad_entradas')  # Cantidad de entradas
+        usuario_username = data.get('usuario')
+        evento_id = data.get('evento')
+        cantidad_entradas = data.get('cantidad_entradas')
 
         # Verificar que los datos son válidos
         if not usuario_username or not evento_id or not cantidad_entradas:
@@ -220,7 +221,7 @@ def crear_reserva(request):
 
         # Buscar usuario y evento
         usuario = User.objects.get(username=usuario_username)
-        evento = Event.objects.get(id=evento_id)
+        evento = Event.objects.prefetch_related("reservas").get(id=evento_id)
 
         # Crear la reserva
         reserva = Reserva.objects.create(
@@ -256,12 +257,13 @@ def actualizar_reserva(request, reserva_id):
     except User.DoesNotExist:
         return JsonResponse({'error': f'No existe un usuario con el nombre de usuario "{organizador_username}".'}, status=404)
 
+
     # Verificar si el usuario es realmente un organizador
     if organizador.rol != 'organizador':
         return JsonResponse({'error': f'El usuario "{organizador_username}" no es un organizador.'}, status=403)
 
     # Obtener la reserva
-    reserva = get_object_or_404(Reserva, id=reserva_id)
+    reserva = get_object_or_404(Reserva.objects.select_related("evento"), id=reserva_id)
 
     # Verificar si el organizador tiene permiso sobre la reserva
     if reserva.evento.organizador != organizador:
@@ -329,8 +331,9 @@ def cancelar_reserva(request, reserva_id):
 # Listar comentarios de eventos
 @require_http_methods(["GET"])
 def listar_comentarios(request, evento_id):
+
     evento = get_object_or_404(Event, id=evento_id)
-    comentarios = evento.comentarios.all().values("usuario__username", "texto", "fecha_creacion")
+    comentarios = evento.comentarios.select_related("usuario").values("usuario__username", "texto", "fecha_creacion")
 
     return JsonResponse({'comentarios': list(comentarios)}, status=200)
 
@@ -367,7 +370,6 @@ def crear_comentario(request, evento_id):
 
 # Register de un usuario
 User = get_user_model()  # Usar el modelo de usuario personalizado
-
 @csrf_exempt
 @require_http_methods(["POST"])
 def register(request):
