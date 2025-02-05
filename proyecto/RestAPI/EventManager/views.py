@@ -212,7 +212,7 @@ def crear_reserva(request):
         data = json.loads(request.body)
         # Extraer datos
         usuario_username = data.get('usuario')
-        evento_id = data.get('evento')
+        evento_id = data.get('evento_id')
         cantidad_entradas = data.get('cantidad_entradas')
 
         # Verificar que los datos son válidos
