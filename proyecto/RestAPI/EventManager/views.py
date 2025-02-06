@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
 from .models import Event, User, Reserva, Comentario
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.dateparse import parse_datetime
@@ -9,100 +10,96 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 import json
 
+#IMPLEMENTACION
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
+from django.core.paginator import Paginator
+from django.contrib.auth.models import User
+from .models import Event
+from rest_framework.permissions import AllowAny  # Permite acceso a todos los usuarios
+
 
 # Obtener eventos con filtros, ordenados y paginados
-@csrf_exempt
-def listar_eventos(request):
-    # Obtener parámetros de búsqueda, ordenación y paginación
-    titulo = request.GET.get("titulo", "")  # Filtrar por título
-    fecha_hora = request.GET.get("fecha", None)  # Filtrar por fecha específica
-    orden = request.GET.get("orden", "fecha_hora")  # Ordenar por fecha_hora por defecto
-    limite = int(request.GET.get("limite", 5))  # Número de resultados por página (5 por defecto)
-    pagina = int(request.GET.get("pagina", 1))  # Página actual (1 por defecto)
+class ListarEventosAPIView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        # Obtener parámetros de búsqueda, ordenación y paginación
+        titulo = request.query_params.get("titulo", "")  # Filtrar por título
+        fecha_hora = request.query_params.get("fecha", None)  # Filtrar por fecha específica
+        orden = request.query_params.get("orden", "fecha_hora")  # Ordenar por defecto
+        limite = int(request.query_params.get("limite", 5))  # Resultados por página
+        pagina = int(request.query_params.get("pagina", 1))  # Página actual
 
-    # Filtrar y ordenar eventos
-    eventos = Event.objects.filter(titulo__icontains=titulo).select_related("organizador")
-    if fecha_hora:
-        eventos = eventos.filter(fecha_hora__date=fecha_hora)  # Filtrar por fecha exacta
-    eventos = eventos.order_by(orden)  # Ordenar por campo especificado
+        # Filtrar y ordenar eventos
+        eventos = Event.objects.filter(titulo__icontains=titulo).select_related("organizador")
+        if fecha_hora:
+            eventos = eventos.filter(fecha_hora__date=fecha_hora)  # Filtrar por fecha exacta
+        eventos = eventos.order_by(orden)  # Ordenar por campo especificado
 
-    # Paginación
-    paginator = Paginator(eventos, limite)
-    try:
-        eventos_pagina = paginator.page(pagina)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)  # Manejar errores de paginación
+        # Paginación
+        paginator = Paginator(eventos, limite)
+        try:
+            eventos_pagina = paginator.page(pagina)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)  # Manejar errores de paginación
 
-    # Crear respuesta con datos paginados
-    data = {
-        "count": paginator.count,  # Número total de eventos
-        "total_pages": paginator.num_pages,  # Número total de páginas
-        "current_page": pagina,  # Página actual
-        "next": pagina + 1 if eventos_pagina.has_next() else None,  # Página siguiente
-        "previous": pagina - 1 if eventos_pagina.has_previous() else None,  # Página anterior
-        "results": [
-            {
-                "id": e.id,
-                "titulo": e.titulo,
-                "descripcion": e.descripcion,
-                "fecha_hora": e.fecha_hora,
-                "capacidad_maxima": e.capacidad_maxima,
-                "imagen_url": e.imagen_url,
-                "organizador": {
-                    "id": e.organizador.id,
-                    "nombre": e.organizador.username,
-                    "correo_electronico": e.organizador.email
+        # Crear respuesta con datos paginados
+        data = {
+            "count": paginator.count,  # Número total de eventos
+            "total_pages": paginator.num_pages,  # Número total de páginas
+            "current_page": pagina,  # Página actual
+            "next": pagina + 1 if eventos_pagina.has_next() else None,  # Página siguiente
+            "previous": pagina - 1 if eventos_pagina.has_previous() else None,  # Página anterior
+            "results": [
+                {
+                    "id": e.id,
+                    "titulo": e.titulo,
+                    "descripcion": e.descripcion,
+                    "fecha_hora": e.fecha_hora,
+                    "capacidad_maxima": e.capacidad_maxima,
+                    "imagen_url": e.imagen_url,
+                    "organizador": {
+                        "id": e.organizador.id,
+                        "nombre": e.organizador.username,
+                        "correo_electronico": e.organizador.email
+                    }
                 }
-            }
-            for e in eventos_pagina
-        ]  # Resultados actuales
-    }
+                for e in eventos_pagina
+            ]  # Resultados actuales
+        }
 
-    return JsonResponse(data, safe=False)
+        return Response(data)
+
 
 # Crear un nuevo evento (solo organizadores)
-@csrf_exempt
-def crear_evento(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Método no permitido. Usa POST.'}, status=405)
+class CrearEventoAPIView(APIView):
+    permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
 
-    # Obtener el organizador desde la URL
-    organizador_username = request.GET.get('organizador')
-    if not organizador_username:
-        return JsonResponse({'error': 'Falta el parámetro "organizador" en la URL.'}, status=400)
+    def post(self, request):
+        try:
+            # Verificar si el usuario es organizador
+            if request.user.rol != 'organizador':
+                return Response({'error': 'No tienes permisos para crear eventos.'}, status=403)
 
-    try:
-        # Buscar al usuario en la base de datos
-        organizador = User.objects.get(username=organizador_username)
-    except User.DoesNotExist:
-        return JsonResponse({'error': f'No existe un usuario con el nombre de usuario "{organizador_username}".'}, status=404)
+            # Obtener datos del request
+            data = request.data
+            evento = Event.objects.create(
+                titulo=data.get('titulo'),
+                descripcion=data.get('descripcion'),
+                fecha_hora=parse_datetime(data.get('fecha_hora')),
+                capacidad_maxima=data.get('capacidad_maxima'),
+                imagen_url=data.get('imagen_url', ''),
+                organizador=request.user
+            )
 
-    # Verificar si el usuario es organizador
-    if organizador.rol != 'organizador':
-        return JsonResponse({'error': f'El usuario "{organizador_username}" no es un organizador.'}, status=403)
+            return Response({'message': 'Evento creado con éxito', 'evento_id': evento.id}, status=201)
 
-    try:
-        # Leer los datos enviados en el cuerpo de la solicitud
-        data = json.loads(request.body)
-
-        # Crear el evento
-        evento = Event.objects.create(
-            titulo=data.get('titulo'),
-            descripcion=data.get('descripcion'),
-            fecha_hora=parse_datetime(data.get('fecha_hora')),
-            capacidad_maxima=data.get('capacidad_maxima'),
-            imagen_url=data.get('imagen_url', ''),
-            organizador=organizador
-        )
-
-        return JsonResponse({'message': 'Evento creado con éxito', 'evento_id': evento.id}, status=201)
-
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'El cuerpo de la solicitud debe ser un JSON válido.'}, status=400)
-    except KeyError as e:
-        return JsonResponse({'error': f'Falta el campo obligatorio: {e}.'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': f'Error al crear el evento: {str(e)}.'}, status=500)
+        except KeyError as e:
+            return Response({'error': f'Falta el campo obligatorio: {e}.'}, status=400)
+        except Exception as e:
+            return Response({'error': f'Error al crear el evento: {str(e)}.'}, status=500)
 
 
 # Actualizar evento

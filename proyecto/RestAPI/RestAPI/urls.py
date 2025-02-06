@@ -17,11 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from EventManager import views
+from rest_framework.authtoken.views import ObtainAuthToken
+from EventManager.views import ListarEventosAPIView,CrearEventoAPIView
+
+#from EventManager.views import
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('eventos', views.listar_eventos, name='listar_eventos'),
-    path('eventos/crear', views.crear_evento, name='crear_evento'),
+    path('login', ObtainAuthToken.as_view(), name='api_token_auth'),
+    #path('eventos', views.listar_eventos, name='listar_eventos'),
+    #path('eventos/crear', views.crear_evento, name='crear_evento'),
     path('eventos/<int:evento_id>/actualizar', views.actualizar_evento, name='actualizar_evento'),
     path('eventos/<int:evento_id>/eliminar', views.eliminar_evento, name='eliminar_evento'),
     path('reservas/<str:username>', views.listar_reservas, name='listar_reservas'),
@@ -31,5 +36,8 @@ urlpatterns = [
     path('eventos/<int:evento_id>/comentarios', views.listar_comentarios, name='listar_comentarios'),
     path('eventos/<int:evento_id>/comentarios/crear', views.crear_comentario, name='crear_comentario'),
     path('register', views.register, name='register'),
-    path('login', views.login, name='login'),
+
+
+    path('eventos/', ListarEventosAPIView.as_view(), name='listar_eventos'),
+    path('eventos/crear/', CrearEventoAPIView.as_view(), name='crear_eventos'),
 ]
