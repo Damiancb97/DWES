@@ -274,6 +274,34 @@ class EliminarEventoAPIView(APIView):
 class ListarReservasAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Listar todas las reservas de un usuario autenticado.",
+        responses={
+            200: openapi.Response(
+                description="Lista de reservas del usuario",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'reservas': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                    'evento__titulo': openapi.Schema(type=openapi.TYPE_STRING),
+                                    'cantidad_entradas': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                    'estado': openapi.Schema(type=openapi.TYPE_STRING)
+                                }
+                            )
+                        )
+                    }
+                )
+            ),
+            401: openapi.Response("No autorizado. El usuario no está autenticado."),
+            403: openapi.Response("Acceso prohibido. El usuario no tiene permiso para ver estas reservas."),
+        }
+    )
+
     def get(self, request):
         reservas = Reserva.objects.filter(usuario=request.user).select_related("evento").values(
             "id", "evento__titulo", "cantidad_entradas", "estado"
@@ -285,6 +313,57 @@ class ListarReservasAPIView(APIView):
 # Postear una nueva reserva
 class CrearRervaAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Crear una nueva reserva para un evento",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'evento_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID del evento al que se desea reservar'),
+                'cantidad_entradas': openapi.Schema(type=openapi.TYPE_INTEGER, description='Cantidad de entradas a reservar')
+            },
+            required=['evento_id', 'cantidad_entradas']
+        ),
+        responses={
+            201: openapi.Response(
+                description="Reserva creada con éxito",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'mensaje': openapi.Schema(type=openapi.TYPE_STRING, description='Mensaje de éxito'),
+                        'reserva_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID de la reserva creada')
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Faltan datos obligatorios o error de validación",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description='Descripción del error')
+                    }
+                )
+            ),
+            404: openapi.Response(
+                description="Evento no encontrado",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description='Descripción del error')
+                    }
+                )
+            ),
+            500: openapi.Response(
+                description="Error interno del servidor",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description='Descripción del error')
+                    }
+                )
+            )
+        }
+    )
 
     def post(self, request):
         try:
@@ -323,6 +402,63 @@ class CrearRervaAPIView(APIView):
 # Actualizar reservas (solo organizadores)
 class ActualizarReservaAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Actualizar una reserva (solo para organizadores)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'estado': openapi.Schema(type=openapi.TYPE_STRING, description="Nuevo estado de la reserva", enum=["pendiente", "confirmada", "cancelada"]),
+                'cantidad_entradas': openapi.Schema(type=openapi.TYPE_INTEGER, description="Nueva cantidad de entradas reservadas")
+            },
+            required=[]  # Ninguno de estos campos es obligatorio en la solicitud
+        ),
+        responses={
+            200: openapi.Response(
+                description="Reserva actualizada correctamente",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description="Mensaje de éxito"),
+                        'actualizacion': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'estado': openapi.Schema(type=openapi.TYPE_STRING, description="Nuevo estado de la reserva"),
+                                'cantidad_entradas': openapi.Schema(type=openapi.TYPE_INTEGER, description="Nueva cantidad de entradas")
+                            }
+                        )
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Error por falta de datos válidos o por falta de entradas disponibles",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Descripción del error")
+                    }
+                )
+            ),
+            403: openapi.Response(
+                description="No tienes permiso para actualizar esta reserva (el usuario no es organizador o no tiene permisos sobre el evento)",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Descripción del error")
+                    }
+                )
+            ),
+            404: openapi.Response(
+                description="Reserva no encontrada",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Descripción del error")
+                    }
+                )
+            )
+        }
+    )
 
     def put(self, request, reserva_id):
         # Obtener al usuario autenticado
@@ -371,6 +507,63 @@ class ActualizarReservaAPIView(APIView):
 
         return Response({'error': 'No se proporcionaron cambios válidos.'}, status=400)
 
+    @swagger_auto_schema(
+        operation_description="Actualizar parcialmente una reserva (solo para organizadores)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'estado': openapi.Schema(type=openapi.TYPE_STRING, description="Nuevo estado de la reserva", enum=["pendiente", "confirmada", "cancelada"]),
+                'cantidad_entradas': openapi.Schema(type=openapi.TYPE_INTEGER, description="Nueva cantidad de entradas reservadas")
+            },
+            required=[]  # Ninguno de estos campos es obligatorio en la solicitud, ya que solo se actualiza lo enviado
+        ),
+        responses={
+            200: openapi.Response(
+                description="Reserva actualizada correctamente",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description="Mensaje de éxito"),
+                        'actualizacion': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'estado': openapi.Schema(type=openapi.TYPE_STRING, description="Nuevo estado de la reserva"),
+                                'cantidad_entradas': openapi.Schema(type=openapi.TYPE_INTEGER, description="Nueva cantidad de entradas")
+                            }
+                        )
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Error por falta de datos válidos o por falta de entradas disponibles",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Descripción del error")
+                    }
+                )
+            ),
+            403: openapi.Response(
+                description="No tienes permiso para actualizar esta reserva (el usuario no es organizador o no tiene permisos sobre el evento)",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Descripción del error")
+                    }
+                )
+            ),
+            404: openapi.Response(
+                description="Reserva no encontrada",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Descripción del error")
+                    }
+                )
+            )
+        }
+    )
+
     def patch(self, request, reserva_id):
         # Similar a put, pero actualizando parcialmente solo los campos que se envíen
         return self.put(request, reserva_id)  # Usamos el mismo código que en PUT para simplificar
@@ -380,6 +573,39 @@ class ActualizarReservaAPIView(APIView):
 # Eliminar Reserva (solo los participantes para su reserva)
 class CancelarReservaAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Cancelar una reserva por el participante autenticado",
+        responses={
+            200: openapi.Response(
+                description="Reserva cancelada correctamente",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description="Mensaje de éxito")
+                    }
+                )
+            ),
+            403: openapi.Response(
+                description="No tienes permiso para cancelar esta reserva",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Descripción del error")
+                    }
+                )
+            ),
+            404: openapi.Response(
+                description="Reserva no encontrada",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Descripción del error")
+                    }
+                )
+            )
+        }
+    )
 
     def delete(self, request, reserva_id):
         usuario = request.user  # Usuario autenticado
@@ -406,6 +632,14 @@ class CancelarReservaAPIView(APIView):
 class ListarComentariosAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        operation_description="Obtener los comentarios de un evento específico",
+        responses={
+            200: openapi.Response(description="Lista de comentarios obtenidos exitosamente",),
+            404: openapi.Response(description="Evento no encontrado",)
+        }
+    )
+
     def get(self, request, evento_id):
         evento = get_object_or_404(Event, id=evento_id)
 
@@ -421,6 +655,28 @@ class ListarComentariosAPIView(APIView):
 # Postear comentario solo a usuarios autenticados
 class CrearcomentariosAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Crear un comentario para un evento específico",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'texto': openapi.Schema(type=openapi.TYPE_STRING, description="Texto del comentario")
+            },
+            required=['texto']
+        ),
+        responses={
+            201: openapi.Response(
+                description="Comentario creado con éxito",
+            ),
+            400: openapi.Response(
+                description="Solicitud incorrecta, falta el campo 'texto'",
+            ),
+            500: openapi.Response(
+                description="Error interno al crear el comentario",
+            )
+        }
+    )
 
     def post(self, request, evento_id):
         try:
