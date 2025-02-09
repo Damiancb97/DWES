@@ -33,7 +33,8 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'EventManager.apps.EventmanagerConfig',
     'rest_framework',
-    'rest_framework.authtoken',
+    'rest_framework.authtoken', #TOKEN
+    'drf_yasg',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

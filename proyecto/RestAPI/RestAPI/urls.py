@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path
 from EventManager import views
 from rest_framework.authtoken.views import ObtainAuthToken
+from drf_yasg import openapi
+from rest_framework.permissions import AllowAny
 
 # Importaciones para eventos
 from EventManager.views import ListarEventosAPIView, CrearEventoAPIView, ActualizarEventoAPIView, EliminarEventoAPIView
@@ -28,6 +30,17 @@ from EventManager.views import ListarReservasAPIView, CrearRervaAPIView, Actuali
 # Importaciones para comentarios
 from EventManager.views import ListarComentariosAPIView, CrearcomentariosAPIView
 
+
+from drf_yasg.views import get_schema_view
+schema_view = get_schema_view(
+    openapi.Info(
+        title="EventManager API",
+        default_version="v1",
+        description="API para gestionar eventos y reservas",
+    ),
+    public=True, # Documentación disponible para cualquier usuario
+    permission_classes=[AllowAny], #Permitir acceso sin autenticación
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -55,4 +68,8 @@ urlpatterns = [
     path('reservas/<int:reserva_id>/cancelar/', CancelarReservaAPIView.as_view(), name='cancelar_reserva'),
     path('eventos/<int:evento_id>/comentarios/', ListarComentariosAPIView.as_view(), name='listar_comentarios'),
     path('eventos/<int:evento_id>/comentarios/crear/', CrearcomentariosAPIView.as_view(), name='crear_comentario'),
+
+    # Documentación Swagger
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]

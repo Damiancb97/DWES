@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 from .models import Event, User, Reserva, Comentario
 from django.views.decorators.csrf import csrf_exempt
@@ -19,12 +20,26 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from .models import Event
 from rest_framework.permissions import AllowAny  # Permite acceso a todos los usuarios
+from drf_yasg import openapi
 
 
 
 # Obtener eventos con filtros, ordenados y paginados
 class ListarEventosAPIView(APIView):
     permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Obtener lista de eventos con filtros y paginación",
+        manual_parameters=[
+            openapi.Parameter('titulo', openapi.IN_QUERY, description="Filtra eventos por título", type=openapi.TYPE_STRING),
+            openapi.Parameter('fecha', openapi.IN_QUERY, description="Filtra eventos por fecha (YYYY-MM-DD)", type=openapi.TYPE_STRING),
+            openapi.Parameter('orden', openapi.IN_QUERY, description="Ordenar por un campo específico (ej: 'fecha_hora')", type=openapi.TYPE_STRING, default='fecha_hora'),
+            openapi.Parameter('limite', openapi.IN_QUERY, description="Número máximo de eventos por página", type=openapi.TYPE_INTEGER, default=5),
+            openapi.Parameter('pagina', openapi.IN_QUERY, description="Número de página", type=openapi.TYPE_INTEGER, default=1),
+        ],
+        responses={200: openapi.Response("Lista de eventos paginada")}
+    )
+
     def get(self, request):
         # Obtener parámetros de búsqueda, ordenación y paginación
         titulo = request.query_params.get("titulo", "")  # Filtrar por título
@@ -79,6 +94,33 @@ class ListarEventosAPIView(APIView):
 class CrearEventoAPIView(APIView):
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
 
+    @swagger_auto_schema(
+        operation_description="Crear un nuevo evento (solo organizadores)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['titulo', 'descripcion', 'fecha_hora', 'capacidad_maxima'],
+            properties={
+                'titulo': openapi.Schema(type=openapi.TYPE_STRING, description="Título del evento"),
+                'descripcion': openapi.Schema(type=openapi.TYPE_STRING, description="Descripción del evento"),
+                'fecha_hora': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, description="Fecha y hora en formato ISO 8601 (`YYYY-MM-DDTHH:MM:SS`)"),
+                'capacidad_maxima': openapi.Schema(type=openapi.TYPE_INTEGER, description="Capacidad máxima de asistentes"),
+                'imagen_url': openapi.Schema(type=openapi.TYPE_STRING, description="URL de la imagen del evento (opcional)")
+            },
+        ),
+        responses={
+            201: openapi.Response("Evento creado con éxito", openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'message': openapi.Schema(type=openapi.TYPE_STRING),
+                    'evento_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                },
+            )),
+            403: openapi.Response("No tienes permisos para crear eventos"),
+            400: openapi.Response("Faltan datos obligatorios"),
+            500: openapi.Response("Error interno del servidor")
+        }
+    )
+
     def post(self, request):
         try:
             # Verificar si el usuario es organizador
@@ -109,8 +151,50 @@ class CrearEventoAPIView(APIView):
 class ActualizarEventoAPIView(APIView):
     permission_classes = [IsAuthenticated]  # Solo usuarios autenticados pueden acceder
 
+    @swagger_auto_schema(
+        operation_description="Actualizar completamente un evento (PUT)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'titulo': openapi.Schema(type=openapi.TYPE_STRING, description="Nuevo título del evento"),
+                'descripcion': openapi.Schema(type=openapi.TYPE_STRING, description="Nueva descripción del evento"),
+                'fecha_hora': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, description="Nueva fecha y hora en formato ISO 8601 (`YYYY-MM-DDTHH:MM:SS`)"),
+                'capacidad_maxima': openapi.Schema(type=openapi.TYPE_INTEGER, description="Nueva capacidad máxima"),
+                'imagen_url': openapi.Schema(type=openapi.TYPE_STRING, description="Nueva URL de la imagen del evento"),
+            },
+        ),
+        responses={
+            200: openapi.Response("Evento actualizado correctamente"),
+            403: openapi.Response("No tienes permisos para actualizar eventos"),
+            404: openapi.Response("Evento no encontrado o no tienes permisos"),
+            400: openapi.Response("Cuerpo de solicitud no válido"),
+            500: openapi.Response("Error interno del servidor"),
+        }
+    )
+
     def put(self, request, evento_id):
         return self.actualizar_evento(request, evento_id, metodo='PUT')
+
+    @swagger_auto_schema(
+        operation_description="Actualizar parcialmente un evento (PATCH)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'titulo': openapi.Schema(type=openapi.TYPE_STRING, description="Nuevo título del evento (opcional)"),
+                'descripcion': openapi.Schema(type=openapi.TYPE_STRING, description="Nueva descripción del evento (opcional)"),
+                'fecha_hora': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, description="Nueva fecha y hora (opcional)"),
+                'capacidad_maxima': openapi.Schema(type=openapi.TYPE_INTEGER, description="Nueva capacidad máxima (opcional)"),
+                'imagen_url': openapi.Schema(type=openapi.TYPE_STRING, description="Nueva URL de la imagen (opcional)"),
+            },
+        ),
+        responses={
+            200: openapi.Response("Evento actualizado correctamente"),
+            403: openapi.Response("No tienes permisos para actualizar eventos"),
+            404: openapi.Response("Evento no encontrado o no tienes permisos"),
+            400: openapi.Response("Cuerpo de solicitud no válido"),
+            500: openapi.Response("Error interno del servidor"),
+        }
+    )
 
     def patch(self, request, evento_id):
         return self.actualizar_evento(request, evento_id, metodo='PATCH')
@@ -160,6 +244,16 @@ class ActualizarEventoAPIView(APIView):
 # Eliminar Eventos (solo organizadores)
 class EliminarEventoAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Eliminar un evento (solo organizadores)",
+        responses={
+            200: openapi.Response("Evento eliminado correctamente"),
+            403: openapi.Response("No tienes permisos para eliminar eventos"),
+            404: openapi.Response("Evento no encontrado o no tienes permisos"),
+            500: openapi.Response("Error interno del servidor"),
+        }
+    )
 
     def delete(self, request, evento_id):
         # Verificar si el usuario autenticado es organizador
