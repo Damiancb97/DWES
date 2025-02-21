@@ -1,0 +1,36 @@
+<!-- templates/panel_usuario.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Usuario</title>
+</head>
+<body>
+    <h1>Bienvenido al panel de usuario</h1>
+
+    <h2>Tus reservas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Evento</th>
+                <th>Cantidad de entradas</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reserva in reservas %}
+                <tr>
+                    <td>{{ reserva.evento.titulo }}</td>
+                    <td>{{ reserva.cantidad_entradas }}</td>
+                    <td>{{ reserva.get_estado_display }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">No tienes reservas.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

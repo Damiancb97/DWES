@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
@@ -10,6 +11,9 @@ from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 import json
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import AuthenticationForm
 
 #IMPLEMENTACION
 from rest_framework.views import APIView
@@ -763,3 +767,61 @@ def login(request):
         return JsonResponse({"error": "El cuerpo de la solicitud debe ser un JSON válido."}, status=400)
     except Exception as e:
         return JsonResponse({"error": f"Error al iniciar sesión: {str(e)}"}, status=500)
+
+
+from django.shortcuts import render
+
+def inicio(request):
+    contexto = {
+        'nombre': 'Django',
+        'version': 4.0,
+    }
+    return render(request, 'inicio.html', contexto)
+
+# Para el html
+def inicio(request):
+    eventos = Event.objects.all()
+    return render(request, 'inicio.html', {'eventos': eventos})
+
+def listar_reservas(request):
+    # Obtener todas las reservas del usuario autenticado
+    reservas = Reserva.objects.filter(usuario=request.user).select_related("evento")
+    return render(request, 'detalle_evento.html', {'reservas': reservas})
+
+def detalle_evento(request, evento_id):
+    evento = get_object_or_404(Event, id=evento_id)
+    return render(request, 'detalle_evento.html', {'evento': evento})
+
+def crear_reserva(request, evento_id):
+    evento = get_object_or_404(Event, id=evento_id)
+
+    if request.method == 'POST' and request.user.is_authenticated:
+        form = ReservaForm(request.POST)
+        if form.is_valid():
+            reserva = form.save(commit=False)
+            reserva.usuario = request.user
+            reserva.evento = evento
+            reserva.save()
+            return redirect('listar_reservas')  # Redirige a la lista de reservas del usuario
+    else:
+        form = ReservaForm()
+
+    return render(request, 'crear_reserva.html', {'form': form, 'evento': evento})
+
+@login_required
+def panel_usuario(request):
+    # Obtener las reservas del usuario autenticado
+    reservas = Reserva.objects.filter(usuario=request.user).select_related('evento')
+    return render(request, 'panel_usuario.html', {'reservas': reservas})
+
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('panel_usuario')  # Redirige al panel de usuario o la página que quieras
+    else:
+        form = AuthenticationForm()
+
+    return render(request, 'login.html', {'form': form})

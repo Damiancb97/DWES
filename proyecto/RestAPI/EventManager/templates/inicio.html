@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Eventos Disponibles</title>
+</head>
+<body>
+    <h1>Eventos Disponibles</h1>
+
+    <form method="GET" action="{% url 'inicio' %}">
+        <input type="text" name="titulo" placeholder="Buscar por título" value="{{ titulo }}">
+        <input type="date" name="fecha" value="{{ fecha_hora }}">
+        <button type="submit">Buscar</button>
+    </form>
+
+    <ul>
+        {% for evento in eventos %}
+            <li>
+                <h3>{{ evento.titulo }}</h3>
+                <p>{{ evento.descripcion }}</p>
+                <p>{{ evento.fecha_hora }}</p>
+                <p><strong>Organizador:</strong> {{ evento.organizador.username }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="pagination">
+        {% if eventos.has_previous %}
+            <a href="?pagina={{ eventos.previous_page_number }}&titulo={{ titulo }}&fecha={{ fecha_hora }}&orden={{ orden }}">Anterior</a>
+        {% endif %}
+
+        <span>Página {{ eventos.number }} de {{ paginator.num_pages }}</span>
+
+        {% if eventos.has_next %}
+            <a href="?pagina={{ eventos.next_page_number }}&titulo={{ titulo }}&fecha={{ fecha_hora }}&orden={{ orden }}">Siguiente</a>
+        {% endif %}
+    </div>
+</body>
+</html>
+
+

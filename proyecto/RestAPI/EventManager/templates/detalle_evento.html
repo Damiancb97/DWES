@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ evento.titulo }}</title>
+</head>
+<body>
+    <h1>{{ evento.titulo }}</h1>
+    <p>{{ evento.descripcion }}</p>
+    <p><strong>Fecha y hora:</strong> {{ evento.fecha_hora }}</p>
+    <p><strong>Capacidad máxima:</strong> {{ evento.capacidad_maxima }}</p>
+    <img src="{{ evento.imagen_url }}" alt="{{ evento.titulo }}" />
+    <a href="{% url 'crear_reserva' evento.id %}">Reservar entradas</a>
+</body>
+</html>

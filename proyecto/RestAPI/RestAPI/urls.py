@@ -20,6 +20,7 @@ from EventManager import views
 from rest_framework.authtoken.views import ObtainAuthToken
 from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
+from django.contrib.auth import views as auth_views
 
 # Importaciones para eventos
 from EventManager.views import ListarEventosAPIView, CrearEventoAPIView, ActualizarEventoAPIView, EliminarEventoAPIView
@@ -29,6 +30,22 @@ from EventManager.views import ListarReservasAPIView, CrearRervaAPIView, Actuali
 
 # Importaciones para comentarios
 from EventManager.views import ListarComentariosAPIView, CrearcomentariosAPIView
+
+# Importación para HTML
+from EventManager.views import inicio
+from EventManager.views import (
+    ListarEventosAPIView,
+    CrearEventoAPIView,
+    ActualizarEventoAPIView,
+    EliminarEventoAPIView,
+    ListarReservasAPIView,
+    CrearRervaAPIView,
+    detalle_evento,
+    listar_reservas,
+    crear_reserva,  # Vista para crear reservas
+)
+
+from EventManager.views import panel_usuario
 
 
 from drf_yasg.views import get_schema_view
@@ -72,4 +89,21 @@ urlpatterns = [
     # Documentación Swagger
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
+    # Path para las vistas
+    path('', inicio, name='inicio'),
+    path('eventos/', ListarEventosAPIView.as_view(), name='listar_eventos'),
+    path('eventos/crear/', CrearEventoAPIView.as_view(), name='crear_eventos'),
+    path('eventos/<int:evento_id>/actualizar/', ActualizarEventoAPIView.as_view(), name='actualizar_evento'),
+    path('eventos/<int:evento_id>/eliminar/', EliminarEventoAPIView.as_view(), name='eliminar_evento'),
+    path('reservas/', listar_reservas, name='listar_reservas'),  # Página para ver las reservas del usuario
+    path('reservas/crear/<int:evento_id>/', crear_reserva, name='crear_reserva'),  # Crear una nueva reserva
+    path('eventos/<int:evento_id>/', detalle_evento, name='detalle_evento'),
+
+    path('login/', auth_views.LoginView.as_view(), name='login'),  # Vista de inicio de sesión
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),  # Vista de cierre de sesión
+    path('panel/', panel_usuario, name='panel_usuario'),
+
+    #path('evento/<int:evento_id>/', detalle_evento, name='detalle_evento'),
+    #path('panel/', panel_usuario, name='panel_usuario'),
 ]

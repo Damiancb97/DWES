@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Reserva</title>
+</head>
+<body>
+    <h1>Reserva para {{ evento.titulo }}</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Reservar</button>
+    </form>
+
+    <p><a href="{% url 'evento' evento.id %}">Volver al evento</a></p>
+</body>
+</html>
